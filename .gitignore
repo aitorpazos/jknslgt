@@ -1,0 +1,6 @@
+.settings/**
+.project
+.tern-project
+*.log
+.sublime-project
+jknslgt.json

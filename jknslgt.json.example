@@ -1,0 +1,53 @@
+// This is an example configuration file. Please copy it as jknslgt.json, adjusting
+// the configuration to your needs and removing these four lines of comments. On
+// array "command"s, even positions are treated as strings and odd ones with eval.
+// 
+{ "storage":
+  { "type": "internal"
+  },
+  "modules": 
+  [{"url": "http://localhost:32769/",
+	"id": "foo",
+	"type": "jenkins",
+	"period": 10,
+	"jobs": 
+	[{"name": "jobTest2",
+      "results": 
+      { "ok":
+        { "commands":
+          [{ "type": "eval",
+            "command": "console.info('Well done!')",
+            "after": 0,
+            "repeatEvery": 3,
+            "repetitions": 2},
+          { "type": "bash",
+            "command": "echo 'Wake up' | festival --tts" , 
+            "after": 1,
+            "repetitions": 1}]
+        },
+        "warning":
+        { },
+        "error":
+        { "commands":
+          []
+        },
+        "unknown":
+        { }
+	  }
+	},
+	{"name": ".*",
+	  "ignore": true,
+      "results": 
+      { "ok":
+        { "commands":
+          [{ "type": "eval",
+            "command": ["console.info('Job ", "status.name", " OK!')"]},
+          { "type": "bash",
+            "command": [ "echo 'Job ", "status.name", " went OK!!!' | festival --tts" ], 
+            "after": 1,
+            "repetitions": 3}]
+        }
+      }
+    }]
+  }]
+}
