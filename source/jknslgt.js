@@ -18,6 +18,11 @@ jknslgt = function(){
     var MODULES_DIR = "./modules";
     var STORAGE_ADDON_DIR = "./storage-addons";
     var REPETITION_MIN_INTERVAL = 2*1000;
+    var configFile = "./jknslgt.json";
+    // The only parameter accepted is the config file
+    if (process.argv.length > 2){
+        configFile = process.argv[2];
+    }
     
     /**
      * Only lower case module/storage names should be used.
@@ -47,7 +52,7 @@ jknslgt = function(){
     /* 
      * See jknslgt.json.example for more info
      */
-    jknslgt.config = require('./jknslgt.json');
+    jknslgt.config = require(configFile);
     
     /**
      * Returns the correct module config for certain Id
