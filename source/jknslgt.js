@@ -15,8 +15,8 @@ jknslgt = function(){
     var timers = require('timers');
     var exec = require('child_process').exec;
     
-    var MODULES_DIR = "./modules";
-    var STORAGE_ADDON_DIR = "./storage-addons";
+    var MODULES_DIR = __dirname + "/modules";
+    var STORAGE_ADDON_DIR = __dirname + "/storage-addons";
     var REPETITION_MIN_INTERVAL = 2*1000;
     var configFile = "./jknslgt.json";
     // The only parameter accepted is the config file
@@ -27,7 +27,7 @@ jknslgt = function(){
     /**
      * Only lower case module/storage names should be used.
      */
-    var addOnDirs = [MODULES_DIR, STORAGE_ADDON_DIR];
+    var addOnDirs = [MODULES_DIR];
     for (var i in addOnDirs){
         var files = fs.readdirSync(addOnDirs[i]);
         for (var fi in files){
@@ -39,17 +39,6 @@ jknslgt = function(){
     }
     
     /**
-     * Only lower case storage names should be used.
-     */
-    var files = fs.readdirSync(STORAGE_ADDON_DIR);
-    for (var fi in files){
-        var fileLower = files[fi].toLowerCase();
-        if (fileLower.match(".*\.js$").length > 0){
-            require(STORAGE_ADDON_DIR + "/" + files[fi]);
-        }
-    }
-    
-    /* 
      * See jknslgt.json.example for more info
      */
     jknslgt.config = require(configFile);
@@ -115,7 +104,6 @@ jknslgt = function(){
      */
     var jobListCallback = function(modConfig, jobsStatus){
         for (var statusi in jobsStatus){
-            console.info("Status for " + modConfig.id + ": " + jobsStatus[statusi].name + " - Status: " + jobsStatus[statusi].code);
             var storage = jknslgt.storageTypes[jknslgt.config.storage.type];
             storage.storeStatus(modConfig.id, jobsStatus[statusi].name, jobsStatus[statusi], _fnOnChangeStoreCallback);
         }
