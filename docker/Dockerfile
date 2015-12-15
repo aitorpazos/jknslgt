@@ -17,6 +17,8 @@ RUN $(cat /etc/apt/sources.list | sed 's/wheezy/jessie/g' > /etc/apt/sources.lis
     cd .. && \
     git clone https://github.com/aitorpazos/jknslgt.git
 
+COPY defaults.cfg /data/lightshowpi/config/defaults.cfg
+
 VOLUME /config
 ENV SYNCHRONIZED_LIGHTS_HOME /data/lightshowpi
 ENV PATH "$PATH:${SYNCHRONIZED_LIGHTS_HOME}/bin"
