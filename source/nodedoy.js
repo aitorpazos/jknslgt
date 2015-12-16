@@ -3,12 +3,12 @@
  * every certain period of time and then execute the configured actions on
  * status change
  */
-jknslgt = function(){
+nodedoy = function(){
     
-    jknslgt.Codes = {"UNDEF": "unknown", "OK": "ok", "WARNING": "warning", "ERROR": "error"};
-    jknslgt.CommandTypes = {"EVAL": "eval", "EXEC": "exec"};
-    jknslgt.storageTypes = {};
-    jknslgt.moduleTypes = {};
+    nodedoy.Codes = {"UNDEF": "unknown", "OK": "ok", "WARNING": "warning", "ERROR": "error"};
+    nodedoy.CommandTypes = {"EVAL": "eval", "EXEC": "exec"};
+    nodedoy.storageTypes = {};
+    nodedoy.moduleTypes = {};
     
     var fs = require('fs');
     var timers = require('timers');
@@ -19,7 +19,7 @@ jknslgt = function(){
     var MODULES_DIR = __dirname + "/modules";
     var STORAGE_ADDON_DIR = __dirname + "/storage-addons";
     var REPETITION_MIN_INTERVAL = 2*1000;
-    var configFile = "./jknslgt.json";
+    var configFile = "./nodedoy.json";
     // The only parameter accepted is the config file
     if (process.argv.length > 2){
         configFile = process.argv[2];
@@ -40,16 +40,16 @@ jknslgt = function(){
     }
     
     /**
-     * See jknslgt.json.example for more info
+     * See nodedoy.json.example for more info
      */
-    jknslgt.config = require(configFile);
+    nodedoy.config = require(configFile);
     
     /**
      * Returns the correct module config for certain Id
      */
-    jknslgt.getModuleConfigById = function(moduleId){
+    nodedoy.getModuleConfigById = function(moduleId){
         var config = undefined;
-        var modules = jknslgt.config.modules;
+        var modules = nodedoy.config.modules;
         for (var i in modules){
             if (moduleId === modules[i].id){
                 config = modules[i];
@@ -105,7 +105,7 @@ jknslgt = function(){
      */
     var jobListCallback = function(modConfig, jobsStatus){
         for (var statusi in jobsStatus){
-            var storage = jknslgt.storageTypes[jknslgt.config.storage.type];
+            var storage = nodedoy.storageTypes[nodedoy.config.storage.type];
             storage.storeStatus(modConfig.id, jobsStatus[statusi].name, jobsStatus[statusi], _fnOnChangeStoreCallback);
         }
     };
@@ -167,10 +167,10 @@ jknslgt = function(){
                 
                 // Running command according to it's type
                 switch(command.type.toLowerCase()){
-                case jknslgt.CommandTypes.EVAL:
+                case nodedoy.CommandTypes.EVAL:
                     eval(_fnProcessCommand(jobConfig, oldStatus, newStatus, command));
                     break;
-                case jknslgt.CommandTypes.EXEC:
+                case nodedoy.CommandTypes.EXEC:
                     child = exec(_fnProcessCommand(jobConfig, oldStatus, newStatus, command),
                             function (error, stdout, stderr) {
                               console.log(stdout);
@@ -213,7 +213,7 @@ jknslgt = function(){
      * list and execute it actions on code change
      */
     var timerFunc = function(module){
-        var moduleType = jknslgt.moduleTypes[module.type];
+        var moduleType = nodedoy.moduleTypes[module.type];
         if (moduleType === undefined){
             console.error("Check configuration, module type " + module.type + " not found.");
             return;
@@ -228,9 +228,9 @@ jknslgt = function(){
     var modulesIntervals = {};
     var _fnSetModulesIntervals = function(){
         modulesIntervals = {}
-        for (var moduleId in jknslgt.config.modules){
+        for (var moduleId in nodedoy.config.modules){
             var period = 10 * 1000;
-            var module = jknslgt.config.modules[moduleId];
+            var module = nodedoy.config.modules[moduleId];
             if (module.period !== undefined){
                 period = module.period * 1000;
             }
@@ -241,8 +241,8 @@ jknslgt = function(){
     }
     
     var _fnClearModulesIntervals = function(){
-        for (var moduleId in jknslgt.config.modules){
-            var module = jknslgt.config.modules[moduleId];
+        for (var moduleId in nodedoy.config.modules){
+            var module = nodedoy.config.modules[moduleId];
             if (modulesIntervals[module.id].intervalObj !== undefined){
                 timers.clearInterval(modulesIntervals[module.id].intervalObj);
             }
@@ -305,11 +305,11 @@ jknslgt = function(){
             response.end(JSON.stringify({"result": 404, "message": "Not found"}, null, 2));
           } else {
             response.writeHead(200, {'Content-Type': 'application/json'});
-            response.end(JSON.stringify(JSON.stringify(jknslgt.config, null, 2), null, 2));
+            response.end(JSON.stringify(JSON.stringify(nodedoy.config, null, 2), null, 2));
           }
         } else if(request.method === "POST") {
-          if (jknslgt.config.enableHTTPChanges !== undefined &&
-                  jknslgt.config.enableHTTPChanges === true){
+          if (nodedoy.config.enableHTTPChanges !== undefined &&
+                  nodedoy.config.enableHTTPChanges === true){
               if (request.url === "/config") {
                 var requestBody = '';
                 request.on('data', function(data) {
@@ -324,7 +324,7 @@ jknslgt = function(){
                       // We don't apply if there is a parsing exception
                       var newConfig = JSON.parse(requestBody);
                       _fnClearModulesIntervals();
-                      jknslgt.config = newConfig;
+                      nodedoy.config = newConfig;
                       _fnSetModulesIntervals();
                       response.writeHead(200, {'Content-Type': 'application/json'});
                       response.end(JSON.stringify({"result": 200, "message": "Config updated"}, null, 2));
@@ -370,9 +370,9 @@ jknslgt = function(){
         }
       }).listen(serverPort);
       console.log('Server running at localhost:'+serverPort);
-    })(jknslgt);
+    })(nodedoy);
     // End of internal on-memory storage
 }
 
-jknslgt();
+nodedoy();
 

@@ -1,6 +1,6 @@
 
 
-# jknslgt
+# nodedoy
 
 This project is meant to be a playground to play with node.js, Jenkin's JSON API
 and executing actions on job's status changes'. But if you find it useful and want
@@ -8,7 +8,7 @@ to join the game, you're very welcome.
 
 ## Usage
 
-Customise `jknslgt.json` to your needs and run node with `node jknslgt.js`.
+Customise `nodedoy.json` to your needs and run node with `node nodedoy.js`.
 
 ## Developing
 

@@ -1,4 +1,4 @@
-// This is an example configuration file. Please copy it as jknslgt.json, adjusting
+// This is an example configuration file. Please copy it as nodedoy.json, adjusting
 // the configuration to your needs and removing these four lines of comments. On
 // array "command"s, even positions are treated as strings and odd ones with eval.
 // 

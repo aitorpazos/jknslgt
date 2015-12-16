@@ -15,7 +15,7 @@ RUN $(cat /etc/apt/sources.list | sed 's/wheezy/jessie/g' > /etc/apt/sources.lis
     git fetch && git checkout stable && \
     ./install.sh && \
     cd .. && \
-    git clone https://github.com/aitorpazos/jknslgt.git
+    git clone https://github.com/aitorpazos/nodedoy.git
 
 COPY defaults.cfg /data/lightshowpi/config/defaults.cfg
 
@@ -23,4 +23,4 @@ VOLUME /config
 EXPOSE 8085
 ENV SYNCHRONIZED_LIGHTS_HOME /data/lightshowpi
 ENV PATH "$PATH:${SYNCHRONIZED_LIGHTS_HOME}/bin"
-CMD nodejs jknslgt/source/jknslgt.js /config/jknslgt.json
+CMD nodejs nodedoy/source/nodedoy.js /config/nodedoy.json
