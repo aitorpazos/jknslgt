@@ -2,7 +2,8 @@
 // the configuration to your needs and removing these four lines of comments. On
 // array "command"s, even positions are treated as strings and odd ones with eval.
 // 
-{ "storage":
+{ "enableHTTPChanges": false,
+  "storage":
   { "type": "internal"
   },
   "modules": 
@@ -20,7 +21,7 @@
             "after": 0,
             "repeatEvery": 3,
             "repetitions": 2},
-          { "type": "bash",
+          { "type": "exec",
             "command": "echo 'Wake up' | festival --tts" , 
             "after": 1,
             "repetitions": 1}]
@@ -42,7 +43,7 @@
         { "commands":
           [{ "type": "eval",
             "command": ["console.info('Job ", "status.name", " OK!')"]},
-          { "type": "bash",
+          { "type": "exec",
             "command": [ "echo 'Job ", "status.name", " went OK!!!' | festival --tts" ], 
             "after": 1,
             "repetitions": 3}]

@@ -3,17 +3,18 @@
  * every certain period of time and then execute the configured actions on
  * status change
  */
-
 jknslgt = function(){
     
     jknslgt.Codes = {"UNDEF": "unknown", "OK": "ok", "WARNING": "warning", "ERROR": "error"};
-    jknslgt.CommandTypes = {"EVAL": "eval", "BASH": "bash"};
+    jknslgt.CommandTypes = {"EVAL": "eval", "EXEC": "exec"};
     jknslgt.storageTypes = {};
     jknslgt.moduleTypes = {};
     
     var fs = require('fs');
     var timers = require('timers');
     var exec = require('child_process').exec;
+    var http = require('http');
+    var qs = require('querystring');
     
     var MODULES_DIR = __dirname + "/modules";
     var STORAGE_ADDON_DIR = __dirname + "/storage-addons";
@@ -131,6 +132,61 @@ jknslgt = function(){
         return result;
     }
     
+    var _executeCommand = function(jobConfig, oldStatus, newStatus, command){
+     // setting the delay
+        var delay = 0;
+        if (command.after !== undefined){
+            delay = command.after * 1000;
+        }
+        timers.setTimeout(function(command){
+            // Configure repetitions
+            // Default: REPETITION_MIN_INTERVAL
+            var repeatEvery = REPETITION_MIN_INTERVAL;
+            if (command.repeatEvery !== undefined){
+                // Don't allow repetitions too fast
+                if (command.repeatEvery * 1000 > repeatEvery){
+                    repeatEvery = command.repeatEvery * 1000;
+                } else {
+                    console.warn("Job (" + job + ") command repeatEvery too often (" +
+                            command.repeatEvery+"): " + command.command + ". Using default: " + REPETITION_MIN_INTERVAL/1000);
+                }
+            }
+            
+            // Default: 1
+            var repetitions = 1;
+            if (command.repetitions !== undefined){
+                repetitions = command.repetitions;
+            }
+            
+            if (repetitions > 0){
+              var interval = timers.setInterval(function(command){
+                if (repetitions-- <= 1){
+                  timers.clearInterval(interval);
+                }
+                console.info(repetitions + " repetitions to go...");
+                
+                // Running command according to it's type
+                switch(command.type.toLowerCase()){
+                case jknslgt.CommandTypes.EVAL:
+                    eval(_fnProcessCommand(jobConfig, oldStatus, newStatus, command));
+                    break;
+                case jknslgt.CommandTypes.EXEC:
+                    child = exec(_fnProcessCommand(jobConfig, oldStatus, newStatus, command),
+                            function (error, stdout, stderr) {
+                              console.log(stdout);
+                              console.error(stderr);
+                              if (error !== null) {
+                                console.error('exec error: ' + error);
+                              }
+                          });
+                    break;
+                default:
+                    break;
+                }
+              }, repeatEvery, command)
+            }
+        }, delay, command);
+    }
     /**
      * Function used as a callback to status storage when there is a change
      */
@@ -147,59 +203,7 @@ jknslgt = function(){
             
             for (var i in resultCommands){
                 var command = resultCommands[i];
-                // setting the delay
-                var delay = 0;
-                if (command.after !== undefined){
-                    delay = command.after * 1000;
-                }
-                timers.setTimeout(function(command){
-                    // Configure repetitions
-                    // Default: REPETITION_MIN_INTERVAL
-                    var repeatEvery = REPETITION_MIN_INTERVAL;
-                    if (command.repeatEvery !== undefined){
-                        // Don't allow repetitions too fast
-                        if (command.repeatEvery * 1000 > repeatEvery){
-                            repeatEvery = command.repeatEvery * 1000;
-                        } else {
-                            console.warn("Job (" + job + ") command repeatEvery too often (" +
-                                    command.repeatEvery+"): " + command.command + ". Using default: " + REPETITION_MIN_INTERVAL/1000);
-                        }
-                    }
-                    
-                    // Default: 1
-                    var repetitions = 1;
-                    if (command.repetitions !== undefined){
-                        repetitions = command.repetitions;
-                    }
-                    
-                    if (repetitions > 0){
-                      var interval = timers.setInterval(function(command){
-                        if (repetitions-- <= 1){
-                          timers.clearInterval(interval);
-                        }
-                        console.info(repetitions + " repetitions to go...");
-                        
-                        // Running command according to it's type
-                        switch(command.type.toLowerCase()){
-                        case jknslgt.CommandTypes.EVAL:
-                            eval(_fnProcessCommand(jobConfig, oldStatus, newStatus, command));
-                            break;
-                        case jknslgt.CommandTypes.BASH:
-                            child = exec(_fnProcessCommand(jobConfig, oldStatus, newStatus, command),
-                                    function (error, stdout, stderr) {
-                                      console.log(stdout);
-                                      console.error(stderr);
-                                      if (error !== null) {
-                                        console.error('exec error: ' + error);
-                                      }
-                                  });
-                            break;
-                        default:
-                            break;
-                        }
-                      }, repeatEvery, command)
-                    }
-                }, delay, command);
+                _executeCommand(jobConfig, oldStatus, newStatus, command);
             }
         }
     };
@@ -222,16 +226,31 @@ jknslgt = function(){
      * Running the main timed actions
      */
     var modulesIntervals = {};
-    for (var moduleId in jknslgt.config.modules){
-        var period = 10 * 1000;
-        var module = jknslgt.config.modules[moduleId];
-        if (module.period !== undefined){
-            period = module.period * 1000;
+    var _fnSetModulesIntervals = function(){
+        modulesIntervals = {}
+        for (var moduleId in jknslgt.config.modules){
+            var period = 10 * 1000;
+            var module = jknslgt.config.modules[moduleId];
+            if (module.period !== undefined){
+                period = module.period * 1000;
+            }
+            modulesIntervals[module.id] = {};
+            modulesIntervals[module.id].period = period;
+            modulesIntervals[module.id].intervalObj = timers.setInterval(timerFunc, period, module);
         }
-        modulesIntervals[module.id] = {};
-        modulesIntervals[module.id].period = period;
-        modulesIntervals[module.id].intervalObj = timers.setInterval(timerFunc, period, module);
     }
+    
+    var _fnClearModulesIntervals = function(){
+        for (var moduleId in jknslgt.config.modules){
+            var module = jknslgt.config.modules[moduleId];
+            if (modulesIntervals[module.id].intervalObj !== undefined){
+                timers.clearInterval(modulesIntervals[module.id].intervalObj);
+            }
+        }
+    }
+    
+    // First time call
+    _fnSetModulesIntervals();
     
     /**
      * Registering default on-memory storage
@@ -262,7 +281,7 @@ jknslgt = function(){
             var oldStatus = storedStatus[moduleId][job];
             // First update is skipped, but we always save new status
             storedStatus[moduleId][job] = status;
-            if (oldStatus === undefined ||
+            if (oldStatus === undefined || oldStatus.code === undefined ||
                     oldStatus.code === status.code){
                 return;
             } else {
@@ -274,6 +293,83 @@ jknslgt = function(){
         º.storageTypes[storageName].getStatus = function(moduleId, job, onGetCallback){
             onGetCallback(storedStatus[moduleId][job], job, º.getModuleConfigById(moduleId));
         };
+        
+    /**
+     * Creating a small server to reply to config changes and commands
+     */
+      var serverPort = 8085;
+      http.createServer(function (request, response) {
+        if(request.method === "GET") {
+          if (request.url === "/favicon.ico") {
+            response.writeHead(404, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({"result": 404, "message": "Not found"}, null, 2));
+          } else {
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify(JSON.stringify(jknslgt.config, null, 2), null, 2));
+          }
+        } else if(request.method === "POST") {
+          if (jknslgt.config.enableHTTPChanges !== undefined &&
+                  jknslgt.config.enableHTTPChanges === true){
+              if (request.url === "/config") {
+                var requestBody = '';
+                request.on('data', function(data) {
+                  requestBody += data;
+                  if(requestBody.length > 1e7) {
+                    response.writeHead(413, 'Request Entity Too Large', {'Content-Type': 'application/json'});
+                    response.end(JSON.stringify({"result": 413, "message": "Request Entity Too Large"}, null, 2));
+                  }
+                });
+                request.on('end', function() {
+                  try {
+                      // We don't apply if there is a parsing exception
+                      var newConfig = JSON.parse(requestBody);
+                      _fnClearModulesIntervals();
+                      jknslgt.config = newConfig;
+                      _fnSetModulesIntervals();
+                      response.writeHead(200, {'Content-Type': 'application/json'});
+                      response.end(JSON.stringify({"result": 200, "message": "Config updated"}, null, 2));
+                  } catch (e) {
+                    console.error("Request:" + requestBody + " - Exception: " + e);
+                    response.writeHead(500, {'Content-Type': 'application/json'});
+                    response.end(JSON.stringify({"result": 500, "message": "Error parsing config"}, null, 2));
+                  }
+                });
+              } else if (request.url === "/command") {
+                var requestBody = '';
+                request.on('data', function(data) {
+                  requestBody += data;
+                  if(requestBody.length > 1e7) {
+                    response.writeHead(413, 'Request Entity Too Large', {'Content-Type': 'application/json'});
+                    response.end(JSON.stringify({"result": 413, "message": "Request Entity Too Large"}, null, 2));
+                  }
+                });
+                request.on('end', function() {
+                  try {
+                      // We skip on parsing exception
+                      var command = JSON.parse(requestBody);
+                      _executeCommand(null, null, null, command);
+                      response.writeHead(200, {'Content-Type': 'application/json'});
+                      response.end(JSON.stringify({"result": 200, "message": "Command executed"}, null, 2));
+                  } catch (e) {
+                      console.error("Request:" + requestBody + " - Exception: " + e);
+                      response.writeHead(500, {'Content-Type': 'application/json'});
+                      response.end(JSON.stringify({"result": 500, "message": "Error parsing command"}, null, 2));
+                  }
+                });
+              } else {
+                response.writeHead(404, 'Resource Not Found', {'Content-Type': 'application/json'});
+                response.end(JSON.stringify({"result": 404, "message": "Not found"}, null, 2));
+              }
+          } else {
+              response.writeHead(401, 'Unauthorized', {'Content-Type': 'application/json'});
+              response.end(JSON.stringify({"result": 401, "message": "Unauthorized"}, null, 2));
+          }
+        } else {
+          response.writeHead(405, 'Method Not Supported', {'Content-Type': 'application/json'});
+          return response.end(JSON.stringify({"result": 405, "message": "Method not supported"}, null, 2));
+        }
+      }).listen(serverPort);
+      console.log('Server running at localhost:'+serverPort);
     })(jknslgt);
     // End of internal on-memory storage
 }
