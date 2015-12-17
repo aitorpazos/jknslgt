@@ -1,0 +1,11 @@
+[Unit]
+Description=Service to be enabled on nodedoy's docker host in order to be auto-started on boot.
+Documentation=https://github.com/aitorpazos/nodedoy/
+PartOf=docker.service
+
+[Service]
+ExecStart=<absolute path to dockernodedoy.sh file>
+
+[Install]
+WantedBy=docker.service
+
