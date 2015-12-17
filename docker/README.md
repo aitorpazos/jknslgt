@@ -21,7 +21,8 @@ This is a wrapper that starts an existing container named nodedoy or create a ne
 Systemd service file that you should copy to `/etc/systemd/system` folder in order to
 register `nodedoy` as a service of the system so it runs automatically on boot.
 
-You need to edit nodedoy.service file in order to set the right path of dockernodedoy.sh.
+You need to edit nodedoy.service file in order to set the right path of dockernodedoy.sh and
+you need to edit dockernodedoy.sh to set the directory you store nodedoy.json file.
 
 * All steps:
 
