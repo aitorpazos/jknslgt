@@ -25,7 +25,7 @@ You need to edit nodedoy.service file in order to set the right path of dockerno
 
 * All steps:
 
->cp <this dir>/nodedoy.service /etc/systemd/system  
+>cp <this dir>/nodedoy.service /etc/systemd/system/nodedoy.service
 >systemctl daemon-reload  
 >systemctl enable nodedoy.service  
 >systemctl start nodedoy.service  
