@@ -1,0 +1,43 @@
+{ "enableHTTPChanges": false,
+  "storage":
+  { "type": "internal"
+  },
+  "modules": 
+  [{"url": "http://localhost:32769/",
+	"id": "foo",
+	"type": "jenkins",
+	"period": 10,
+	"jobs": 
+	[{"name": "jobTest2",
+      "results": 
+      { "ok":
+        { "commands":
+          [{ "type": "eval",
+            "command": "console.info('Well done!')",
+            "after": 0,
+            "repeatEvery": 3,
+            "repetitions": 2}]
+        },
+        "warning":
+        { },
+        "error":
+        { "commands":
+          []
+        },
+        "unknown":
+        { }
+	  }
+	},
+	{"name": ".*",
+	  "ignore": true,
+      "results": 
+      { "ok":
+        { "commands":
+          [{ "type": "eval",
+            "command": ["console.info('Job ", "status.name", " OK!')"]}
+            ]
+        }
+      }
+    }]
+  }]
+}

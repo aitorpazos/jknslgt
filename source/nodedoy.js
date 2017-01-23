@@ -19,7 +19,7 @@ nodedoy = function(){
     var MODULES_DIR = __dirname + "/modules";
     var STORAGE_ADDON_DIR = __dirname + "/storage-addons";
     var REPETITION_MIN_INTERVAL = 2*1000;
-    var configFile = "./nodedoy.json";
+    var configFile = "./config.json";
     // The only parameter accepted is the config file
     if (process.argv.length > 2){
         configFile = process.argv[2];

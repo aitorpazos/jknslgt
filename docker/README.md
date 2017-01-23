@@ -1,35 +1,41 @@
+# docker images
 
+Yoy can use the Makefile in this folder in order to build a set of docker images
+containing nodedoy.
 
-# nodedoy
+Calling `make` it will generate three images: 
+- aitorpazos/nodedoy              -> x86_64 nodedoy image
+- aitorpazos/rpi-nodedoy          -> armhf nodedoy image (based in raspbian)
+- aitorpazos/rpi-nodedoy-wiringpi -> armhf nodedoy image with wiringpi, audio 
+and TTS support
 
-This Dockerfile builds a Docker images for RaspberryPi based on `acencini/rpi-python-serial-wiringpi:latest` (`https://hub.docker.com/r/acencini/rpi-python-serial-wiringpi/`). Please note that it must run in privileged mode:
-
-``docker run -P -v <your path to nodedoy.json>:/config --device /dev/ttyAMA0:/dev/ttyAMA0 --device /dev/mem:/dev/mem --device /dev/snd:/dev/snd --privileged aitorpazos/nodedoy:latest``
-
-(Some day Docker registry will support automated non x86* builds ;-) )
+You will require `cpp` command installed, which pre-process Dockerfiles.
 
 ## Run the docker container on startup
 
-Two files are provided in order to make this task easy: dockernodedoy.sh and nodedoy.service.
+Two files are provided in order to make this task easy: `dockernodedoy.sh` and 
+`nodedoy.service`.
 
 ### dockernodedoy.sh
 
-This is a wrapper that starts an existing container named nodedoy or create a new one if it doesn't exist.
+This is a wrapper that starts an existing container named nodedoy or create a new 
+one if it doesn't exist.
 
 ### nodedoy.service
 
 Systemd service file that you should copy to `/etc/systemd/system` folder in order to
-register `nodedoy` as a service of the system so it runs automatically on boot.
+register `nodedoy` as a system's service so it runs automatically at boot.
 
-You need to edit nodedoy.service file in order to set the right path of dockernodedoy.sh and
-you need to edit dockernodedoy.sh to set the directory you store nodedoy.json file.
+You might want to edit `nodedoy.service` file in order to set the right path of 
+dockernodedoy.sh or point it to your own image. The only parameter `dockernodedoy.sh`
+accepts is the image that it will start.
 
-* All steps:
+* All the steps:
 
 >cp <this dir>/nodedoy.service /etc/systemd/system/nodedoy.service
 >systemctl daemon-reload  
 >systemctl enable nodedoy.service  
 >systemctl start nodedoy.service  
 
-Your host system should be prepared to run nodedoy automatically.
+Your host system is now prepared to run nodedoy automatically.
 

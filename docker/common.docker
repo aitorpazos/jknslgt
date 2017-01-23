@@ -1,0 +1,11 @@
+MAINTAINER Aitor Pazos <mail@aitorpazos.es> 
+
+COPY docker/config.json /etc/nodedoy/config.json
+COPY source /opt/nodedoy
+RUN apt-get update && apt-get install -y --force-yes \\
+    curl node-underscore wget --no-install-recommends
+
+WORKDIR /opt/nodedoy
+EXPOSE 8085
+CMD nodejs nodedoy.js /etc/nodedoy/config.json
+

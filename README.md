@@ -8,11 +8,11 @@ to join the game, you're very welcome.
 
 ## Usage
 
-Customise `nodedoy.json` to your needs and run node with `node nodedoy.js`.
+Customise `config.json` to your needs and run node with `node nodedoy.js`.
 
 ## Developing
 
 You can add new services to poll creating new modules under `modules` folder. Currently
 all job's status are stored solely in memory but this might be extended to support
-other storages in the future.
+other storage options in the future.
 

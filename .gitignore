@@ -4,5 +4,8 @@
 .tern-project
 *.log
 .sublime-project
-nodedoy.json
 .jshintrc
+config.json
+docker/Dockerfile
+docker/Dockerfile-rpi
+

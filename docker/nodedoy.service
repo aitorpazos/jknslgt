@@ -4,7 +4,7 @@ Documentation=https://github.com/aitorpazos/nodedoy/
 PartOf=docker.service
 
 [Service]
-ExecStart=<absolute path to dockernodedoy.sh file>
+ExecStart=/opt/nodedoy/dockernodedoy.sh aitorpazos/nodedoy
 
 [Install]
 WantedBy=docker.service
