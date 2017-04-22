@@ -1,6 +1,6 @@
 {"title": "Nodedoy Config",
-"$schema": "https://raw.githubusercontent.com/aitorpazos/nodedoy/master/source/config.schema.json",
-"type": "nodedoyconfig",
+"$schema": "http://json-schema.org/draft-04/schema",
+"type": "object",
 "properties":
   {"enableHTTPConfigChanges":
     {"title": "Changes from HTTP requests are allowed",
@@ -48,6 +48,7 @@
 "definitions":
   {"resultActions":
     {"title": "Result actions",
+    "id": "resultActions",
     "type": "object",
     "description": "Defines to actions on each of the results",
     "properties":
@@ -71,6 +72,7 @@
     },
   "actionDefinition":
     {"title": "Action definition",
+    "id": "actionDefinition",
     "type": "object",
     "properties":
       {"commands":
@@ -82,7 +84,7 @@
           "properties":
             {"type":
               {"title": "Command type",
-              "type": { "enum": ["eval", "exec"] }
+              "enum": ["eval", "exec"]
               },
             "command":
               {"title": "Command to run",
